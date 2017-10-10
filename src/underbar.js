@@ -238,11 +238,23 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    _.each(arguments, function(object) {
+      for (var key in object) {
+        obj[key] = object[key];
+      }
+    });
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    _.each(arguments, function(object) {
+      for (var key in object) {
+        !obj.hasOwnProperty(key) ? obj[key] = object[key] : 1;
+      }
+    });
+    return obj;
   };
 
 
@@ -286,6 +298,32 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    
+    var cache = {};
+
+
+    return function() {
+      var keys = _.map(arguments, _.identity);
+  
+      if (Array.isArray(keys[0])) {
+        keys = keys[0];
+        keys.push('isArray');
+      }
+
+      if (cache[keys] !== undefined) {
+        return cache[keys];
+      }
+
+      cache[keys] = func.apply(this, arguments);
+      return cache[keys];
+    };
+    // return function() {
+    //   if (cache.hasOwnProperty(arguments)) {
+    //     return cache[arguments];
+    //   } 
+    //   cache[arguments] = func.apply(this, arguments);
+    //   return cache[arguments];
+    // };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -295,6 +333,11 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+
+    var args = Array.prototype.slice.call(arguments, 2);
+    setTimeout(function() {
+      func.apply(null, args);
+    }, wait);
   };
 
 
@@ -309,6 +352,12 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var newArray = array.slice();
+    for (var i = 0; i < newArray.length; i++) {
+      var random = Math.floor(Math.random() * newArray.length);
+      [newArray[i], newArray[random]] = [newArray[random], newArray[i]];
+    }      
+    return newArray;
   };
 
 
