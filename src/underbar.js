@@ -198,12 +198,12 @@
     // TIP: Try re-using reduce() here.
     iterator = iterator === undefined ? _.identity : iterator;
 
-    return !!_.reduce(collection, function(isTrue, element) {
+    return _.reduce(collection, function(isTrue, element) {
       if (!iterator(element)) { 
-        isTrue = 0;
+        isTrue = false;
       }
       return isTrue;
-    }, 1);
+    }, true);
     
   };
 
@@ -212,10 +212,14 @@
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
     iterator = iterator === undefined ? _.identity : iterator;
-
-    return !_.every(collection, function(element) {
-      return !iterator(element);
-    });
+    
+    return _.reduce(collection, function(isTrue, element) {
+      if (iterator(element)) {
+        isTrue = true;
+      }
+      
+      return isTrue;
+    }, false);
   };
 
 
@@ -372,6 +376,11 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
+    return _.map(collection, function(item) {
+      var func = typeof functionOrKey === 'string' ? item[functionOrKey] : functionOrKey;
+      return func.apply(item, args);
+    });
+    
   };
 
   // Sort the object's values by a criterion produced by an iterator.
@@ -386,14 +395,37 @@
   //
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
-  _.zip = function() {
+  _.zip = function(array) {
+    var args = Array.prototype.slice.call(arguments);
+    var sort = Array.prototype.sort.call(args);
+    var length = sort[0].length;
+    var result = [];
+
+    for (var i = 0; i < length; i++) {
+      var temp = [];
+      for (var j = 0; j < arguments.length; j++) {
+        temp.push(arguments[j][i]);
+      }
+      result.push(temp);
+    }
+
+    return result;
+    
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   //
   // Hint: Use Array.isArray to check if something is an array
-  _.flatten = function(nestedArray, result) {
+  _.flatten = function(nestedArray, result) {  
+    return _.reduce(nestedArray, function(flat, item) {
+      if (Array.isArray(item)) {
+        flat = flat.concat(_.flatten(item));
+      } else {
+        flat = flat.concat(item);
+      }
+      return flat;
+    }, []);
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
@@ -414,3 +446,4 @@
   _.throttle = function(func, wait) {
   };
 }());
+  
